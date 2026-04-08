@@ -1,0 +1,80 @@
+name: gestureflow_workflow
+version: "2.1.0"
+description: >
+  A multi-step OpenEnv-style environment for assistive gesture-to-text reasoning.
+  The agent reads one gesture at a time and must predict the correct token using
+  sequence history and context-sensitive disambiguation.
+
+tags:
+  - openenv
+  - accessibility
+  - gesture-recognition
+  - assistive-ai
+  - sequence-reasoning
+
+author: "OpenAI"
+license: "MIT"
+
+entrypoint: server.app:app
+
+models:
+  observation: env.models.Observation
+  action: env.models.Action
+  reward: env.models.Reward
+  state: env.models.EnvState
+
+tasks:
+  - id: easy
+    name: "Single-step Assistive Gesture Recognition"
+    description: >
+      Recognize short, low-ambiguity gesture sequences and predict each step correctly.
+    difficulty: easy
+    max_steps: 3
+    grader: env.grader.compute_reward
+    score_range: [0.0, 1.0]
+    success_threshold: 0.60
+
+  - id: medium
+    name: "Multi-step Gesture Phrase Recognition"
+    description: >
+      Recognize longer gesture sequences and maintain consistency across steps.
+    difficulty: medium
+    max_steps: 5
+    grader: env.grader.compute_reward
+    score_range: [0.0, 1.0]
+    success_threshold: 0.68
+
+  - id: hard
+    name: "Context-sensitive Ambiguous Gesture Resolution"
+    description: >
+      Resolve ambiguous gestures using prior sequence history and scenario context.
+    difficulty: hard
+    max_steps: 7
+    grader: env.grader.compute_reward
+    score_range: [0.0, 1.0]
+    success_threshold: 0.72
+
+interface:
+  reset:
+    description: "Start a new episode and return an Observation payload."
+    returns: Observation
+  step:
+    description: "Execute one action and return observation, reward, done, and info."
+    input: Action
+    returns: [Observation, Reward, bool, dict]
+  state:
+    description: "Return current EnvState snapshot."
+    returns: EnvState
+
+runtime:
+  python: ">=3.10"
+  dependencies:
+    - fastapi
+    - uvicorn
+    - pydantic
+    - openai
+
+huggingface:
+  space_sdk: docker
+  tags:
+    - openenv
